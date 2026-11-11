@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import giftIcon from '../../assets/icons/gift.svg';
 import subscriptionIcon from '../../assets/icons/subscription.svg';
 import walletIcon from '../../assets/icons/wallet.svg';
@@ -14,7 +13,6 @@ const budgetIcons: Record<BudgetCategory, string> = {
 };
 
 function BudgetStep() {
-  const [isComplete, setIsComplete] = useState(false);
   const selectedCategories = useOnboardingStore((state) => state.budgetCategories);
   const selectedSubscriptions = useOnboardingStore((state) => state.subscriptions);
   const paidPriceLimit = useOnboardingStore((state) => state.paidPriceLimit);
@@ -35,9 +33,9 @@ function BudgetStep() {
       title="Гра на твій бюджет"
       description="Обери зручні способи доступу. Хороший матч не має бути дорогим."
       backTo="/onboarding/genres"
-      continueLabel={isComplete ? 'Готово' : 'Почати свайпати'}
-      canContinue={canFinish && !isComplete}
-      onComplete={() => setIsComplete(true)}
+      continueTo="/deck"
+      continueLabel="Почати свайпати"
+      canContinue={canFinish}
     >
       <p className="selection-hint">МОЖНА ПОЄДНУВАТИ</p>
       <div className="budget-grid">
@@ -50,10 +48,7 @@ function BudgetStep() {
                 type="button"
                 className="budget-card__choose"
                 aria-pressed={isSelected}
-                onClick={() => {
-                  setIsComplete(false);
-                  toggleBudgetCategory(category.id);
-                }}
+                onClick={() => toggleBudgetCategory(category.id)}
               >
                 <span className={`budget-icon budget-icon--${category.icon}`} aria-hidden="true">
                   <img src={budgetIcons[category.id]} alt="" />
@@ -83,10 +78,7 @@ function BudgetStep() {
                         key={subscription.id}
                         aria-pressed={selected}
                         disabled={!isSelected}
-                        onClick={() => {
-                          setIsComplete(false);
-                          toggleSubscription(subscription.id);
-                        }}
+                        onClick={() => toggleSubscription(subscription.id)}
                       >
                         {subscription.name}
                       </button>
@@ -108,10 +100,7 @@ function BudgetStep() {
                         value={limit.id}
                         checked={paidPriceLimit === limit.id}
                         disabled={!isSelected}
-                        onChange={() => {
-                          setIsComplete(false);
-                          setPaidPriceLimit(limit.id);
-                        }}
+                        onChange={() => setPaidPriceLimit(limit.id)}
                       />
                       <span>{limit.label}</span>
                     </label>
@@ -150,18 +139,6 @@ function BudgetStep() {
             : ''}
         </p>
       </div>
-
-      {isComplete ? (
-        <div className="completion-message" role="status">
-          <span aria-hidden="true">✓</span>
-          <div>
-            <strong>Твій профіль готовий</strong>
-            <p>
-              Підбір ігор з’явиться тут, коли буде підключено каталог. Твої вподобання збережені.
-            </p>
-          </div>
-        </div>
-      ) : null}
     </OnboardingPage>
   );
 }

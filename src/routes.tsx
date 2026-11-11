@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import BudgetStep from './features/onboarding/BudgetStep';
 import GenreStep from './features/onboarding/GenreStep';
 import PlatformStep from './features/onboarding/PlatformStep';
+import DeckPage from './pages/DeckPage';
 import WelcomePage from './pages/WelcomePage';
 
 export const router = createBrowserRouter([
@@ -24,6 +25,10 @@ export const router = createBrowserRouter([
   {
     path: '/onboarding/budget',
     element: <BudgetStep />,
+  },
+  {
+    path: '/deck',
+    element: <DeckPage />,
   },
   {
     path: '*',

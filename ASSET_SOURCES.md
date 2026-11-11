@@ -8,6 +8,7 @@ Each image was downloaded from Steam's CDN using the corresponding `library_600x
 
 | Local file                                           | Game                          | Official source                                                                               |
 | ---------------------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------- |
+| `src/assets/games/resident-evil-4.jpg`               | Resident Evil 4               | [Steam store page](https://store.steampowered.com/app/2050650/Resident_Evil_4/)               |
 | `src/assets/games/elden-ring.jpg`                    | ELDEN RING                    | [Steam store page](https://store.steampowered.com/app/1245620/ELDEN_RING/)                    |
 | `src/assets/games/baldurs-gate-3.jpg`                | Baldur's Gate 3               | [Steam store page](https://store.steampowered.com/app/1086940/Baldurs_Gate_3/)                |
 | `src/assets/games/cyberpunk-2077.jpg`                | Cyberpunk 2077                | [Steam store page](https://store.steampowered.com/app/1091500/Cyberpunk_2077/)                |
