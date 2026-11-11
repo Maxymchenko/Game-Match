@@ -284,95 +284,15 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 6%);
-  background-color: #182533;
+  background: #182533;
 }
 
-.cover-tile::before,
-.cover-tile::after {
-  position: absolute;
-  content: '';
-}
-
-.cover-tile::before {
-  inset: 15% -18% -10% 14%;
-  border: 1px solid rgb(255 255 255 / 20%);
-  border-radius: 50% 50% 8% 8%;
-  background: linear-gradient(145deg, rgb(255 255 255 / 14%), transparent 55%);
-  transform: rotate(-18deg);
-}
-
-.cover-tile::after {
-  right: 12%;
-  bottom: 8%;
-  width: 47%;
-  height: 28%;
-  border-radius: 50% 50% 2px 2px;
-  background: linear-gradient(90deg, rgb(11 14 23 / 4%), rgb(7 8 16 / 76%));
-  filter: blur(2px);
-}
-
-.cover-tile--0 {
-  background:
-    radial-gradient(ellipse at 65% 25%, #607d74, transparent 33%),
-    linear-gradient(140deg, #1b3433, #10151e 75%);
-}
-
-.cover-tile--1 {
-  background:
-    radial-gradient(ellipse at 40% 25%, #a2553c, transparent 34%),
-    linear-gradient(155deg, #3b2828, #14131c 72%);
-}
-
-.cover-tile--2 {
-  background:
-    radial-gradient(ellipse at 52% 30%, #b37b42, transparent 35%),
-    linear-gradient(155deg, #473627, #131924 75%);
-}
-
-.cover-tile--3 {
-  background:
-    radial-gradient(ellipse at 70% 24%, #54748c, transparent 35%),
-    linear-gradient(155deg, #263c52, #14141e 75%);
-}
-
-.cover-tile--4 {
-  background:
-    radial-gradient(ellipse at 50% 27%, #cf6148, transparent 30%),
-    linear-gradient(155deg, #45232e, #15151c 75%);
-}
-
-.cover-tile--5 {
-  background:
-    radial-gradient(ellipse at 50% 28%, #759848, transparent 34%),
-    linear-gradient(155deg, #263624, #11161e 75%);
-}
-
-.cover-tile--6 {
-  background:
-    radial-gradient(ellipse at 48% 27%, #5d75b0, transparent 34%),
-    linear-gradient(155deg, #252d55, #11151e 75%);
-}
-
-.cover-tile--7 {
-  background:
-    radial-gradient(ellipse at 54% 28%, #ab5c9f, transparent 34%),
-    linear-gradient(155deg, #3d2548, #14151e 75%);
-}
-
-.cover-tile:nth-child(5n + 1)::before {
-  inset: 10% -7% -4% 31%;
-  border-radius: 48% 48% 0 0;
-  transform: rotate(12deg);
-}
-
-.cover-tile:nth-child(4n)::after {
-  right: 8%;
-  bottom: 14%;
-  width: 58%;
-  height: 35%;
-  border-radius: 50%;
-  background: rgb(232 83 218 / 24%);
-  filter: blur(13px);
+.cover-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 
 .landing-art__scrim {
@@ -730,6 +650,7 @@
 
 .selection-check {
   position: absolute;
+  z-index: 3;
   top: 16px;
   right: 16px;
   display: grid;
@@ -767,21 +688,19 @@
   border: 1px solid rgb(175 158 236 / 9%);
   border-radius: 11px;
   background: #232737;
-  color: #9daac5;
-  font-size: 9px;
-  font-weight: 760;
-  letter-spacing: -0.04em;
   place-items: center;
 }
 
 .platform-glyph--pc,
 .is-selected .platform-glyph {
   background: #342552;
-  color: #c2a9ff;
 }
 
-.platform-glyph--xbox {
-  font-size: 20px;
+.platform-glyph img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .platform-card__copy {
@@ -857,147 +776,15 @@
 }
 
 .genre-card__art {
-  overflow: hidden;
-  background-color: #182536;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   transition: transform 300ms ease;
 }
 
 .genre-card:hover .genre-card__art {
   transform: scale(1.055);
-}
-
-.genre-card__art::before,
-.genre-card__art::after {
-  position: absolute;
-  content: '';
-}
-
-.genre-card__art::before {
-  top: 7%;
-  right: 8%;
-  width: 62%;
-  height: 92%;
-  border: 1px solid rgb(230 240 255 / 18%);
-  border-radius: 48% 48% 3% 3%;
-  background: linear-gradient(150deg, rgb(208 220 232 / 19%), transparent 48%);
-  box-shadow: 0 18px 24px rgb(0 0 0 / 19%);
-  transform: rotate(14deg);
-}
-
-.genre-card__art::after {
-  right: -5%;
-  bottom: -23%;
-  left: -5%;
-  height: 58%;
-  border-radius: 50% 50% 0 0;
-  background: rgb(9 13 22 / 39%);
-  filter: blur(8px);
-}
-
-.genre-card--rpg .genre-card__art {
-  background:
-    radial-gradient(ellipse at 72% 25%, #7d9caa, transparent 36%),
-    linear-gradient(140deg, #476878, #1e2e3b 70%);
-}
-
-.genre-card--fps .genre-card__art {
-  background:
-    radial-gradient(ellipse at 45% 38%, #9b916f, transparent 28%),
-    linear-gradient(145deg, #5c6249, #26362d 67%, #192329);
-}
-
-.genre-card--fps .genre-card__art::before {
-  top: 22%;
-  right: 18%;
-  width: 22%;
-  height: 39%;
-  border-radius: 40% 40% 5% 5%;
-  background: linear-gradient(180deg, #353d40, #111820);
-  transform: rotate(-18deg);
-}
-
-.genre-card--roguelike .genre-card__art {
-  background:
-    radial-gradient(ellipse at 72% 46%, #da5841, transparent 23%),
-    linear-gradient(145deg, #401f29, #17191f 75%);
-}
-
-.genre-card--roguelike .genre-card__art::before {
-  top: 27%;
-  right: 26%;
-  width: 38%;
-  height: 50%;
-  border: 0;
-  border-radius: 45% 45% 10% 10%;
-  background: linear-gradient(125deg, #3a2c37, #11141b 70%);
-  box-shadow: 8px 17px 21px rgb(0 0 0 / 40%);
-  transform: rotate(-9deg);
-}
-
-.genre-card--indie .genre-card__art {
-  background:
-    radial-gradient(ellipse at 65% 35%, #84b65a, transparent 23%),
-    linear-gradient(145deg, #16473f, #192a36 76%);
-}
-
-.genre-card--indie .genre-card__art::before {
-  top: 20%;
-  right: 13%;
-  width: 76%;
-  height: 58%;
-  border: 0;
-  border-radius: 4px;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 13px, rgb(81 189 128 / 42%) 14px 16px),
-    repeating-linear-gradient(90deg, #163a36 0 17px, #275546 18px 20px);
-  transform: perspective(100px) rotateX(28deg) rotateZ(-5deg);
-}
-
-.genre-card--strategy .genre-card__art {
-  background:
-    radial-gradient(ellipse at 53% 52%, #2d6280, transparent 38%),
-    linear-gradient(140deg, #142c40, #101720 76%);
-}
-
-.genre-card--strategy .genre-card__art::before {
-  top: 19%;
-  right: 11%;
-  width: 76%;
-  height: 70%;
-  border: 0;
-  border-radius: 0;
-  background:
-    repeating-linear-gradient(
-      28deg,
-      transparent 0 18px,
-      rgb(233 83 218 / 72%) 19px 20px,
-      transparent 21px 37px
-    ),
-    repeating-linear-gradient(
-      150deg,
-      transparent 0 26px,
-      rgb(68 168 199 / 70%) 27px 28px,
-      transparent 29px 46px
-    );
-  filter: drop-shadow(0 0 5px rgb(233 83 218 / 50%));
-  transform: rotate(-12deg);
-}
-
-.genre-card--adventure .genre-card__art {
-  background:
-    radial-gradient(ellipse at 68% 32%, #e5b45f, transparent 25%),
-    linear-gradient(145deg, #71896a, #2e4a4c 54%, #202d35 80%);
-}
-
-.genre-card--adventure .genre-card__art::before {
-  top: 22%;
-  right: 15%;
-  width: 53%;
-  height: 84%;
-  border: 0;
-  border-radius: 46% 46% 0 0;
-  background: linear-gradient(180deg, rgb(246 224 177 / 56%), rgb(63 89 79 / 82%) 47%, #1b262e);
-  transform: rotate(18deg);
 }
 
 .genre-card__shade {
@@ -1082,15 +869,18 @@
   grid-column: 1;
   border-radius: 10px;
   background: #252938;
-  color: #a7aec3;
-  font-size: 19px;
-  font-weight: 600;
   place-items: center;
 }
 
 .budget-card.is-selected .budget-icon {
   background: #352452;
-  color: #bea5ff;
+}
+
+.budget-icon img {
+  display: block;
+  width: 21px;
+  height: 21px;
+  object-fit: contain;
 }
 
 .budget-card__check {
@@ -1631,7 +1421,11 @@
     width: 31px;
     height: 31px;
     border-radius: 9px;
-    font-size: 8px;
+  }
+
+  .platform-glyph img {
+    width: 22px;
+    height: 22px;
   }
 
   .platform-card__copy {
@@ -1709,6 +1503,11 @@
   .budget-icon {
     width: 31px;
     height: 31px;
+  }
+
+  .budget-icon img {
+    width: 19px;
+    height: 19px;
   }
 
   .budget-card__choose strong {

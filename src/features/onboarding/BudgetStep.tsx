@@ -1,7 +1,17 @@
 import { useState } from 'react';
+import giftIcon from '../../assets/icons/gift.svg';
+import subscriptionIcon from '../../assets/icons/subscription.svg';
+import walletIcon from '../../assets/icons/wallet.svg';
 import OnboardingPage from '../../pages/OnboardingPage';
 import { useOnboardingStore } from '../../store/onboardingStore';
+import type { BudgetCategory } from '../../types/preferences';
 import { budgetCategories, paidPriceLimits, subscriptions } from './onboardingOptions';
+
+const budgetIcons: Record<BudgetCategory, string> = {
+  free: giftIcon,
+  subscription: subscriptionIcon,
+  paid: walletIcon,
+};
 
 function BudgetStep() {
   const [isComplete, setIsComplete] = useState(false);
@@ -46,7 +56,7 @@ function BudgetStep() {
                 }}
               >
                 <span className={`budget-icon budget-icon--${category.icon}`} aria-hidden="true">
-                  {category.icon === 'gift' ? '✧' : category.icon === 'wallet' ? '₴' : '◇'}
+                  <img src={budgetIcons[category.id]} alt="" />
                 </span>
                 <span className="budget-card__check" aria-hidden="true">
                   {isSelected ? '✓' : ''}

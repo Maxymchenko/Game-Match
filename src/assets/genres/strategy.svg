@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse"><stop stop-color="#253768"/><stop offset="1" stop-color="#142f48"/></linearGradient>
+    <linearGradient id="terrain" x1="795" y1="340" x2="795" y2="850" gradientUnits="userSpaceOnUse"><stop stop-color="#287b8d"/><stop offset="1" stop-color="#142f48"/></linearGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4c44cf"/><stop offset="1" stop-color="#1e8cb0"/></linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v900H0z"/>
+  <circle cx="1260" cy="150" r="82" fill="#f5c1f0" fill-opacity=".48"/><circle cx="1260" cy="150" r="125" stroke="#e953da" stroke-opacity=".16" stroke-width="3"/>
+  <path fill="#1e8cb0" fill-opacity=".28" d="m0 427 224-183 178 115 214-232 191 209 170-128 245 190 176-127 202 154v475H0z"/>
+  <path fill="url(#terrain)" d="m0 527 230-133 215 95 200-144 206 108 210-150 235 122 173-93 131 62v406H0z"/>
+  <path fill="#142f48" d="m0 681 215-91 187 91 191-92 242 111 183-105 192 84 196-98 194 80v239H0z"/>
+  <g stroke="#f5c1f0" stroke-opacity=".3" stroke-width="3">
+    <path d="m190 384 124-72 124 72v144l-124 72-124-72zM438 384l124-72 124 72v144l-124 72-124-72zM686 384l124-72 124 72v144l-124 72-124-72zM934 384l124-72 124 72v144l-124 72-124-72zM1182 384l124-72 124 72v144l-124 72-124-72z"/>
+    <path d="m314 600 124-72 124 72v144l-124 72-124-72zM562 600l124-72 124 72v144l-124 72-124-72zM810 600l124-72 124 72v144l-124 72-124-72zM1058 600l124-72 124 72v144l-124 72-124-72z"/>
+  </g>
+  <g fill="url(#tile)" stroke="#f5c1f0" stroke-opacity=".72" stroke-width="3"><path d="m562 456 62-36 62 36v72l-62 36-62-36z"/><path d="m934 528 62-36 62 36v72l-62 36-62-36z"/><path d="m1182 384 62-36 62 36v72l-62 36-62-36z"/></g>
+  <g stroke="#f5c1f0" stroke-width="7"><path d="M624 466v-83m372 144v-99m248-20v-100"/></g>
+  <g fill="#e953da"><path d="m624 382 79 23-79 25zM996 427l73 22-73 23zM1244 327l82 24-82 25z"/></g>
+  <g fill="#142f48"><path d="M279 501h72v78h-72zM299 462h32v39h-32zM1077 661h78v75h-78zM1099 619h34v42h-34z"/><path d="m264 462 31-55 31 55zm803 157 31-54 31 54z"/></g>
+  <path stroke="#e953da" stroke-width="5" stroke-dasharray="12 14" d="m624 492 124 72 248-36 248-108"/>
+  <g fill="#f5c1f0"><circle cx="748" cy="564" r="8"/><circle cx="996" cy="528" r="8"/><circle cx="1244" cy="420" r="8"/></g>
+</svg>

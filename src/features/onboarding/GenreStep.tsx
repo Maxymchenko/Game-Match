@@ -21,12 +21,12 @@ function GenreStep() {
       <div className="genre-grid">
         {genreOptions.map((genre) => (
           <SelectableCard
-            className={`genre-card genre-card--${genre.art}`}
+            className="genre-card"
             key={genre.id}
             selected={selectedGenres.includes(genre.id)}
             onToggle={() => toggleGenre(genre.id)}
           >
-            <span className="genre-card__art" aria-hidden="true" />
+            <img className="genre-card__art" src={genre.image} alt="" loading="lazy" />
             <span className="genre-card__shade" aria-hidden="true" />
             <span className="genre-card__copy">
               <strong>{genre.name}</strong>

@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AppLogo from '../components/AppLogo';
-
-const coverTiles = Array.from({ length: 24 }, (_, index) => index);
+import { gameCoverArtworks } from '../assets/gameArtwork';
 
 function WelcomePage() {
   return (
@@ -62,14 +61,17 @@ function WelcomePage() {
             <p className="welcome-caption">3 короткі кроки. Жодного зайвого вибору.</p>
           </div>
 
-          <div
-            className="landing-art"
-            role="img"
-            aria-label="Декоративна мозаїка з тимчасових заглушок обкладинок ігор"
-          >
+          <div className="landing-art" role="img" aria-label="Мозаїка з обкладинок відеоігор">
             <div className="cover-mosaic" aria-hidden="true">
-              {coverTiles.map((tile) => (
-                <span className={`cover-tile cover-tile--${tile % 8}`} key={tile} />
+              {gameCoverArtworks.map((cover, tile) => (
+                <span className="cover-tile" key={cover.title}>
+                  <img
+                    src={cover.src}
+                    alt=""
+                    loading={tile < 10 ? 'eager' : 'lazy'}
+                    decoding="async"
+                  />
+                </span>
               ))}
             </div>
             <div className="landing-art__scrim" />
