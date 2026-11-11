@@ -27,7 +27,7 @@ function PlatformStep() {
             onToggle={() => togglePlatform(platform.id)}
           >
             <span className={`platform-glyph platform-glyph--${platform.id}`} aria-hidden="true">
-              {platform.symbol}
+              <img src={platform.icon} alt="" />
             </span>
             <span className="platform-card__copy">
               <strong>{platform.name}</strong>
