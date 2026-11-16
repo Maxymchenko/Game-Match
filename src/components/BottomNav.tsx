@@ -1,12 +1,26 @@
 import { Link } from 'react-router-dom';
+import { useWishlistStore } from '../store/wishlistStore';
 
 interface BottomNavProps {
-  activePage: 'deck' | 'wishlist';
+  activePage: 'deck' | 'search' | 'wishlist';
 }
 
 function BottomNav({ activePage }: BottomNavProps) {
+  const wishlistCount = useWishlistStore((state) => state.games.length);
+
   return (
     <nav className="deck-mobile-nav" aria-label="Мобільна навігація">
+      <Link
+        className={`deck-mobile-nav__item${activePage === 'search' ? ' is-active' : ''}`}
+        to="/search"
+        aria-current={activePage === 'search' ? 'page' : undefined}
+      >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" strokeWidth="1.8" />
+          <path d="m16 16 4.3 4.3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+        <span>Пошук</span>
+      </Link>
       <Link
         className={`deck-mobile-nav__item${activePage === 'deck' ? ' is-active' : ''}`}
         to="/deck"
@@ -41,7 +55,7 @@ function BottomNav({ activePage }: BottomNavProps) {
             strokeLinejoin="round"
           />
         </svg>
-        <span>Хочу грати</span>
+        <span>Хочу грати{wishlistCount > 0 ? ` · ${wishlistCount}` : ''}</span>
       </Link>
     </nav>
   );

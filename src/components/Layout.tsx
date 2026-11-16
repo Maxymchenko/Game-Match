@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { useWishlistStore } from '../store/wishlistStore';
 import AppLogo from './AppLogo';
 import BottomNav from './BottomNav';
 
 interface LayoutProps {
-  activePage: 'deck' | 'wishlist';
+  activePage: 'deck' | 'search' | 'wishlist';
   breadcrumb: string;
   children: ReactNode;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   searchLabel?: string;
+  showHeaderSearch?: boolean;
   mobileActions?: ReactNode;
   notificationOpen?: boolean;
   onNotificationOpenChange?: (open: boolean) => void;
@@ -22,10 +24,12 @@ function Layout({
   searchValue = '',
   onSearchChange,
   searchLabel = 'Знайти гру',
+  showHeaderSearch = true,
   mobileActions,
   notificationOpen,
   onNotificationOpenChange,
 }: LayoutProps) {
+  const wishlistCount = useWishlistStore((state) => state.games.length);
   const [internalNotificationOpen, setInternalNotificationOpen] = useState(false);
   const isNotificationsOpen = notificationOpen ?? internalNotificationOpen;
 
@@ -78,7 +82,11 @@ function Layout({
             <span>Колода</span>
             {activePage === 'deck' ? <i aria-hidden="true" /> : null}
           </Link>
-          <span className="deck-nav__item" aria-disabled="true">
+          <Link
+            className={`deck-nav__item${activePage === 'search' ? ' is-active' : ''}`}
+            to="/search"
+            aria-current={activePage === 'search' ? 'page' : undefined}
+          >
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" strokeWidth="1.8" />
               <path
@@ -89,7 +97,8 @@ function Layout({
               />
             </svg>
             <span>Пошук</span>
-          </span>
+            {activePage === 'search' ? <i aria-hidden="true" /> : null}
+          </Link>
           <Link
             className={`deck-nav__item${activePage === 'wishlist' ? ' is-active' : ''}`}
             to="/wishlist"
@@ -104,6 +113,7 @@ function Layout({
               />
             </svg>
             <span>Хочу грати</span>
+            {wishlistCount > 0 ? <b className="deck-nav__count">{wishlistCount}</b> : null}
             {activePage === 'wishlist' ? <i aria-hidden="true" /> : null}
           </Link>
           <span className="deck-nav__item" aria-disabled="true">
@@ -165,24 +175,26 @@ function Layout({
             <AppLogo compact />
           </div>
           <div className="deck-topbar__tools">
-            <label className="deck-search">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" strokeWidth="1.6" />
-                <path
-                  d="m13.2 13.2 4 4"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
+            {showHeaderSearch ? (
+              <label className="deck-search">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" strokeWidth="1.6" />
+                  <path
+                    d="m13.2 13.2 4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <input
+                  type="search"
+                  placeholder="Знайти гру..."
+                  aria-label={searchLabel}
+                  value={searchValue}
+                  onChange={(event) => onSearchChange?.(event.target.value)}
                 />
-              </svg>
-              <input
-                type="search"
-                placeholder="Знайти гру..."
-                aria-label={searchLabel}
-                value={searchValue}
-                onChange={(event) => onSearchChange?.(event.target.value)}
-              />
-            </label>
+              </label>
+            ) : null}
             <button
               className="deck-icon-button deck-notification-trigger"
               type="button"
