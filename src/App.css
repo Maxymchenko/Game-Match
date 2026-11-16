@@ -2203,14 +2203,19 @@ button.deck-nav__item {
 .deck-fact__score-value,
 .deck-fact__score-empty {
   display: grid;
+  box-sizing: border-box;
   width: 42px;
   height: 42px;
   flex: 0 0 42px;
+  overflow: hidden;
   border-radius: 9px;
   background: #05b982;
   color: #fff;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 760;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
   place-items: center;
 }
 

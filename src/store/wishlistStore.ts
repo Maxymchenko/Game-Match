@@ -1,5 +1,7 @@
+
+
+
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Game } from '../types/game';
 
 interface WishlistState {
@@ -8,11 +10,11 @@ interface WishlistState {
   addGame: (game: Game, isSuperlike: boolean) => void;
   removeGame: (gameId: string) => void;
   restoreGameState: (game: Game, wasLiked: boolean, wasSuperliked: boolean) => void;
+  replaceGames: (games: Game[], superlikedIds: string[]) => void;
+  clear: () => void;
 }
 
-export const useWishlistStore = create<WishlistState>()(
-  persist(
-    (set) => ({
+export const useWishlistStore = create<WishlistState>()((set) => ({
       games: [],
       superlikedIds: [],
       addGame: (game, isSuperlike) =>
@@ -30,6 +32,8 @@ export const useWishlistStore = create<WishlistState>()(
           games: state.games.filter((game) => game.id !== gameId),
           superlikedIds: state.superlikedIds.filter((id) => id !== gameId),
         })),
+      replaceGames: (games, superlikedIds) => set({ games, superlikedIds }),
+      clear: () => set({ games: [], superlikedIds: [] }),
       restoreGameState: (game, wasLiked, wasSuperliked) =>
         set((state) => {
           const gamesWithoutTarget = state.games.filter((item) => item.id !== game.id);
@@ -42,11 +46,4 @@ export const useWishlistStore = create<WishlistState>()(
               : superlikesWithoutTarget,
           };
         }),
-    }),
-    {
-      name: 'gamematch-wishlist',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ games: state.games, superlikedIds: state.superlikedIds }),
-    },
-  ),
-);
+    }));

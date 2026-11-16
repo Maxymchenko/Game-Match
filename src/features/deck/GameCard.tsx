@@ -58,7 +58,11 @@ function GameCard({ game, swipeDirection, onSwipe }: GameCardProps) {
       exit="exit"
       transition={{ type: 'spring', stiffness: 260, damping: 27 }}
     >
-      <img className="deck-game-card__image" src={game.image} alt="" draggable={false} />
+      {game.image ? (
+        <img className="deck-game-card__image" src={game.image} alt="" draggable={false} />
+      ) : (
+        <div className="deck-game-card__image" aria-hidden="true" />
+      )}
       <div className="deck-game-card__scrim" aria-hidden="true" />
       <span className="deck-game-card__badge">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -71,29 +75,26 @@ function GameCard({ game, swipeDirection, onSwipe }: GameCardProps) {
             fill="currentColor"
           />
         </svg>
-        Під твій смак
+        Каталог IGDB
       </span>
 
       <div className="deck-game-card__content">
         <div className="deck-game-card__intro">
           <h2>{game.title}</h2>
-          <p className="deck-game-card__year">
-            {game.releaseYear}
-            {game.id === 'resident-evil-4' ? ' (або 2005 для оригінальної версії)' : ''}
-          </p>
+          <p className="deck-game-card__year">{game.releaseYear ?? 'Рік невідомий'}</p>
           <p className="deck-game-card__description">{game.description}</p>
         </div>
 
         <div className="deck-game-card__facts">
           <div className="deck-fact deck-fact--score">
-            {game.metacriticScore ? (
-              <span className="deck-fact__score-value">{game.metacriticScore}</span>
+            {game.rating ? (
+              <span className="deck-fact__score-value">{game.rating.toFixed(1)}</span>
             ) : (
               <span className="deck-fact__score-empty">—</span>
             )}
             <span className="deck-fact__copy">
-              <strong>{game.metacriticScore ? 'Metacritic' : 'Оцінка'}</strong>
-              <small>{game.metacriticScore ? 'зі 100 балів' : 'ще не має'}</small>
+              <strong>{game.rating ? 'IGDB' : 'Оцінка'}</strong>
+              <small>{game.rating ? 'зі 100 балів' : 'ще не має'}</small>
             </span>
           </div>
           <div className="deck-fact">

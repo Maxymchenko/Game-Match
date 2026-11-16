@@ -1,0 +1,77 @@
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows                              
+-------------------------------------------------------------------------------
+
+  Started : 15 листопада 2026 р. 21:27:38
+   Source : C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\
+     Dest : C:\Users\dze36\Documents\Game-Match\
+
+    Files : *.*
+	    
+Exc Files : .env
+	    
+ Exc Dirs : .git
+	    node_modules
+	    dist
+	    .backup-before-auth-20261115
+	    
+  Options : *.* /S /E /DCOPY:DAT /COPY:DAT /R:1 /W:1 
+
+------------------------------------------------------------------------------
+
+	                  19	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\
+	  *EXTRA File 		     699	restore-backup-log.txt
+	                   2	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\public\
+	                   5	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\
+	    Older     		   63328	App.css100%  
+	    Older     		    1012	routes.tsx100%  
+	                   5	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\api\
+	    Older     		    1069	auth.ts100%  
+	    Older     		    1649	igdb.ts100%  
+	    Older     		    1995	library.ts100%  
+	                   4	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\assets\
+	                  21	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\assets\games\
+	                   6	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\assets\genres\
+	                   3	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\assets\icons\
+	                   5	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\assets\platforms\
+	                   6	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\components\
+	  *EXTRA File 		     570	AuthGate.tsx
+	                   0	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\features\
+	                   4	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\features\deck\
+	    Older     		    4462	GameCard.tsx100%  
+	                   2	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\features\library\
+	                   5	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\features\onboarding\
+	                   3	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\features\profile\
+	                   1	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\features\search\
+	                   4	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\hooks\
+	    Older     		       0	useLibrary.ts
+	                   8	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\pages\
+	  *EXTRA File 		    5065	AuthPage.tsx
+	  *EXTRA File 		   15557	DeckPage.tsx.before-encoding-fix.bak
+	    Older     		   12877	DeckPage.tsx100%  
+	    Older     		    4174	WelcomePage.tsx100%  
+	    Older     		    2804	WishlistPage.tsx100%  
+	                   3	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\store\
+	                   4	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\types\
+	                   0	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\src\utils\
+	                   1	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\supabase\
+	                   9	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\supabase\.temp\
+	                   1	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\supabase\functions\
+	                   1	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\supabase\functions\igdb\
+	    Older     		    4884	index.ts100%  
+	                   1	C:\Users\dze36\Documents\Game-Match\.backup-before-auth-20261115\supabase\migrations\
+
+------------------------------------------------------------------------------
+
+               Total    Copied   Skipped  Mismatch    FAILED    Extras
+    Dirs :        26         0        26         0         0         4
+   Files :       123        11       112         0         0         4
+   Bytes :    4.32 m    95.9 k    4.23 m         0         0    21.3 k
+   Times :   0:00:00   0:00:00                       0:00:00   0:00:00
+
+
+   Speed :           7 558 000 Bytes/sec.
+   Speed :             432,472 MegaBytes/min.
+   Ended : 15 листопада 2026 р. 21:27:38
+

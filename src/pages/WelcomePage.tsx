@@ -55,7 +55,7 @@ function WelcomePage() {
               <br />
               Один свайп — і беклог стає планом.
             </p>
-            <Link className="button button--primary welcome-cta" to="/onboarding/platforms">
+            <Link className="button button--primary welcome-cta" to="/auth">
               Знайти свою гру <span aria-hidden="true">→</span>
             </Link>
             <p className="welcome-caption">3 короткі кроки. Жодного зайвого вибору.</p>

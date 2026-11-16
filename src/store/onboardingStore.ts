@@ -14,6 +14,7 @@ interface OnboardingStore extends OnboardingPreferences {
   toggleBudgetCategory: (category: BudgetCategory) => void;
   toggleSubscription: (subscription: SubscriptionOption) => void;
   setPaidPriceLimit: (limit: PaidPriceLimit) => void;
+  setPreferences: (preferences: OnboardingPreferences) => void;
   resetPreferences: () => void;
 }
 
@@ -47,5 +48,6 @@ export const useOnboardingStore = create<OnboardingStore>((set) => ({
   toggleSubscription: (subscription) =>
     set((state) => ({ subscriptions: toggleValue(state.subscriptions, subscription) })),
   setPaidPriceLimit: (limit) => set({ paidPriceLimit: limit }),
+  setPreferences: (preferences) => set(preferences),
   resetPreferences: () => set(initialPreferences),
 }));

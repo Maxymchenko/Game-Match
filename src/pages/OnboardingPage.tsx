@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -13,6 +14,7 @@ import {
 } from '../features/onboarding/onboardingOptions';
 import { useOnboardingStore } from '../store/onboardingStore';
 import type { OnboardingStep } from '../types/preferences';
+import { savePreferences } from '../api/preferences';
 
 interface OnboardingPageProps {
   step: OnboardingStep;
@@ -38,6 +40,8 @@ function OnboardingPage({
   onComplete,
 }: OnboardingPageProps) {
   const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const selectedPlatforms = useOnboardingStore((state) => state.platforms);
   const selectedGenres = useOnboardingStore((state) => state.genres);
   const selectedBudgetCategories = useOnboardingStore((state) => state.budgetCategories);
@@ -76,13 +80,29 @@ function OnboardingPage({
         ? `${selectedGenres.length} ${selectedGenres.length === 1 ? 'жанр' : 'жанрів'}`
         : `${selectedBudgetCategories.length} ${selectedBudgetCategories.length === 1 ? 'категорію' : 'категорії'}`;
 
-  function handleContinue() {
-    if (!canContinue) return;
-    if (continueTo) {
-      navigate(continueTo);
-      return;
+  async function handleContinue() {
+    if (!canContinue || saving) return;
+    setSaveError('');
+    if (step === 3) {
+      setSaving(true);
+      try {
+        const preferences = useOnboardingStore.getState();
+        await savePreferences({
+          platforms: preferences.platforms,
+          genres: preferences.genres,
+          budgetCategories: preferences.budgetCategories,
+          subscriptions: preferences.subscriptions,
+          paidPriceLimit: preferences.paidPriceLimit,
+        });
+      } catch (error) {
+        setSaveError(error instanceof Error ? error.message : 'Не вдалося зберегти вподобання.');
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
     }
-    onComplete?.();
+    if (continueTo) navigate(continueTo);
+    else onComplete?.();
   }
 
   return (
@@ -187,11 +207,17 @@ function OnboardingPage({
                 <Link className="button button--quiet" to={backTo}>
                   <span aria-hidden="true">←</span> Назад
                 </Link>
-                <Button disabled={!canContinue} onClick={handleContinue}>
-                  {continueLabel}
+                <Button disabled={!canContinue || saving} onClick={handleContinue}>
+                  {saving ? 'Зберігаємо…' : continueLabel}
                   <span aria-hidden="true">→</span>
                 </Button>
               </div>
+              {saveError && (
+                <p className="auth-message auth-message--error" role="alert">
+                  {saveError}
+                </p>
+              )}
+              `n{' '}
             </footer>
           </section>
         </div>
