@@ -5,6 +5,7 @@ import GenreStep from './features/onboarding/GenreStep';
 import PlatformStep from './features/onboarding/PlatformStep';
 import AuthPage from './pages/AuthPage';
 import DeckPage from './pages/DeckPage';
+import SearchPage from './pages/SearchPage';
 import WelcomePage from './pages/WelcomePage';
 import WishlistPage from './pages/WishlistPage';
 
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
       { path: '/onboarding/genres', element: <GenreStep /> },
       { path: '/onboarding/budget', element: <BudgetStep /> },
       { path: '/deck', element: <DeckPage /> },
+      { path: '/search', element: <SearchPage /> },
       { path: '/wishlist', element: <WishlistPage /> },
     ],
   },
