@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useWishlistStore } from '../store/wishlistStore';
 
 interface BottomNavProps {
-  activePage: 'deck' | 'search' | 'wishlist';
+  activePage: 'deck' | 'search' | 'wishlist' | 'account';
 }
 
 function BottomNav({ activePage }: BottomNavProps) {
@@ -56,6 +56,22 @@ function BottomNav({ activePage }: BottomNavProps) {
           />
         </svg>
         <span>Хочу грати{wishlistCount > 0 ? ` · ${wishlistCount}` : ''}</span>
+      </Link>
+      <Link
+        className={`deck-mobile-nav__item${activePage === 'account' ? ' is-active' : ''}`}
+        to="/account"
+        aria-current={activePage === 'account' ? 'page' : undefined}
+      >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="7.5" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+          <path
+            d="M4.5 20a7.5 7.5 0 0 1 15 0v1h-15v-1Z"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <span>Акаунт</span>
       </Link>
     </nav>
   );

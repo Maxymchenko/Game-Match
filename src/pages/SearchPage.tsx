@@ -7,7 +7,6 @@ import { useRecommendations } from '../hooks/useRecommendations';
 import { useWishlistStore } from '../store/wishlistStore';
 import type { Game } from '../types/game';
 
-type PriceCategory = 'free' | 'subscription' | 'paid';
 type SortOption = 'popular' | 'rating' | 'year' | 'title';
 type FilterMenu = 'platform' | 'genre' | 'year' | 'rating' | 'price';
 
@@ -21,21 +20,7 @@ const genreAliases: Record<string, string[]> = {
   Стратегія: ['strategy'],
   Пригоди: ['adventure'],
 };
-const priceOptions: { id: PriceCategory; label: string }[] = [
-  { id: 'free', label: 'Безкоштовні · демо' },
-  { id: 'subscription', label: 'За підпискою · демо' },
-  { id: 'paid', label: 'Платні · демо' },
-];
 const ratingOptions = [70, 80, 85, 90, 95];
-
-// Demo classifications only: the catalog does not contain actual store prices.
-const demoPriceCategories: Record<string, PriceCategory> = {
-  'counter-strike-2': 'free',
-  'resident-evil-4': 'subscription',
-  hades: 'subscription',
-  'hollow-knight': 'subscription',
-  'ori-and-the-will-of-the-wisps': 'subscription',
-};
 
 const platformAliases: Record<string, string[]> = {
   PC: ['pc'],
@@ -44,9 +29,6 @@ const platformAliases: Record<string, string[]> = {
   'Nintendo Switch': ['nintendo switch', 'switch'],
   'Steam Deck': ['steam deck'],
 };
-
-const priceLabel = (category: PriceCategory) =>
-  priceOptions.find((option) => option.id === category)?.label ?? category;
 
 function normalizeSearchText(value: string) {
   return value
@@ -82,11 +64,6 @@ function matchesSearchQuery(game: Game, query: string) {
     ...(game.playerPerspectives ?? []),
   ];
   return normalizeSearchText(searchableValues.join(' ')).includes(normalizeSearchText(query));
-}
-
-function getDemoPriceCategory(game: Game): PriceCategory | undefined {
-  const titleKey = normalizeSearchText(game.title).replace(/[^\p{L}\p{N}]+/gu, '-');
-  return demoPriceCategories[titleKey];
 }
 
 function toggleValue(selected: string[], value: string): string[] {
@@ -134,7 +111,6 @@ function SearchPage() {
   const [yearFrom, setYearFrom] = useState<number | null>(null);
   const [yearTo, setYearTo] = useState<number | null>(null);
   const [minimumRating, setMinimumRating] = useState<number | null>(null);
-  const [priceCategory, setPriceCategory] = useState<PriceCategory | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('popular');
   const [openFilter, setOpenFilter] = useState<FilterMenu | null>(null);
   const [isAllFiltersOpen, setIsAllFiltersOpen] = useState(false);
@@ -178,9 +154,7 @@ function SearchPage() {
         (yearFrom === null || (game.releaseYear !== undefined && game.releaseYear >= yearFrom)) &&
         (yearTo === null || (game.releaseYear !== undefined && game.releaseYear <= yearTo));
       const matchesRating = minimumRating === null || (game.rating ?? -1) >= minimumRating;
-      const matchesPrice = priceCategory === null || getDemoPriceCategory(game) === priceCategory;
-
-      return matchesPlatforms && matchesGenres && matchesYears && matchesRating && matchesPrice;
+      return matchesPlatforms && matchesGenres && matchesYears && matchesRating;
     });
 
     return filtered.sort((first, second) => {
@@ -195,7 +169,6 @@ function SearchPage() {
     });
   }, [
     minimumRating,
-    priceCategory,
     searchCandidates,
     selectedGenres,
     selectedPlatforms,
@@ -337,15 +310,6 @@ function SearchPage() {
           },
         ]
       : []),
-    ...(priceCategory
-      ? [
-          {
-            id: 'price',
-            label: priceLabel(priceCategory),
-            onRemove: () => setPriceCategory(null),
-          },
-        ]
-      : []),
   ];
 
   function clearFilters() {
@@ -355,7 +319,6 @@ function SearchPage() {
     setYearFrom(null);
     setYearTo(null);
     setMinimumRating(null);
-    setPriceCategory(null);
     setOpenFilter(null);
   }
 
@@ -515,13 +478,13 @@ function SearchPage() {
             <FilterControl
               label="Ціна"
               icon={<CoinsIcon />}
-              activeCount={priceCategory ? 1 : 0}
+              activeCount={0}
               isOpen={openFilter === 'price'}
               onToggle={() => setOpenFilter((current) => (current === 'price' ? null : 'price'))}
             >
-              <PriceSelect value={priceCategory} onChange={setPriceCategory} />
               <p className="search-filter__note">
-                Демонстраційні категорії доступні лише для кількох відомих ігор.
+                IGDB не надає фактичних цін або доступності в підписках, тому цей фільтр поки
+                недоступний.
               </p>
             </FilterControl>
             <button
@@ -715,9 +678,9 @@ function SearchPage() {
                 setYearTo={setYearTo}
               />
               <RatingSelect value={minimumRating} onChange={setMinimumRating} />
-              <div>
-                <PriceSelect value={priceCategory} onChange={setPriceCategory} />
-                <p className="search-filter__note">Демонстраційні категорії, не фактичні ціни.</p>
+              <div className="search-filter__note">
+                IGDB не надає фактичних цін або доступності в підписках, тому цей фільтр поки
+                недоступний.
               </div>
             </div>
             <div className="search-filter-dialog__actions">
@@ -860,31 +823,6 @@ function RatingSelect({
         {ratingOptions.map((rating) => (
           <option key={rating} value={rating}>
             {rating}+
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function PriceSelect({
-  value,
-  onChange,
-}: {
-  value: PriceCategory | null;
-  onChange: (category: PriceCategory | null) => void;
-}) {
-  return (
-    <label className="search-select-field">
-      <span>Ціна · локальне демо</span>
-      <select
-        value={value ?? ''}
-        onChange={(event) => onChange((event.target.value || null) as PriceCategory | null)}
-      >
-        <option value="">Усі категорії</option>
-        {priceOptions.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.label}
           </option>
         ))}
       </select>

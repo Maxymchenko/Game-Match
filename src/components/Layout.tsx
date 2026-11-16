@@ -5,7 +5,7 @@ import AppLogo from './AppLogo';
 import BottomNav from './BottomNav';
 
 interface LayoutProps {
-  activePage: 'deck' | 'search' | 'wishlist';
+  activePage: 'deck' | 'search' | 'wishlist' | 'account';
   breadcrumb: string;
   children: ReactNode;
   searchValue?: string;
@@ -116,7 +116,11 @@ function Layout({
             {wishlistCount > 0 ? <b className="deck-nav__count">{wishlistCount}</b> : null}
             {activePage === 'wishlist' ? <i aria-hidden="true" /> : null}
           </Link>
-          <span className="deck-nav__item" aria-disabled="true">
+          <Link
+            className={`deck-nav__item${activePage === 'account' ? ' is-active' : ''}`}
+            to="/account"
+            aria-current={activePage === 'account' ? 'page' : undefined}
+          >
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="7.5" r="3.5" stroke="currentColor" strokeWidth="1.8" />
               <path
@@ -126,8 +130,9 @@ function Layout({
                 strokeLinejoin="round"
               />
             </svg>
-            <span>Профіль</span>
-          </span>
+            <span>Акаунт</span>
+            {activePage === 'account' ? <i aria-hidden="true" /> : null}
+          </Link>
         </nav>
 
         <div className="deck-sidebar__bottom">
@@ -212,15 +217,23 @@ function Layout({
                 />
               </svg>
             </button>
-            <span className="deck-avatar deck-avatar--top" aria-label="Профіль гравця">
+            <Link
+              className="deck-avatar deck-avatar--top"
+              to="/account"
+              aria-label="Відкрити акаунт"
+            >
               GM
-            </span>
+            </Link>
           </div>
           <div className="deck-topbar__mobile-actions">
             {mobileActions}
-            <span className="deck-avatar deck-avatar--top" aria-label="Профіль гравця">
+            <Link
+              className="deck-avatar deck-avatar--top"
+              to="/account"
+              aria-label="Відкрити акаунт"
+            >
               GM
-            </span>
+            </Link>
           </div>
         </header>
         {children}
