@@ -29,3 +29,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+[executed on device: Demian (69731327-043a-4e69-80b9-f35d217b4ea0)]
+# Local Supabase Edge Function secrets
+supabase/functions/.env
+!supabase/functions/.env.example

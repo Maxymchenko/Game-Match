@@ -1,0 +1,407 @@
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import Layout from '../components/Layout';
+import DeckFilters from '../features/deck/DeckFilters';
+import type { SwipeAction } from '../features/deck/ActionButtons';
+import SwipeDeck from '../features/deck/SwipeDeck';
+import {
+  budgetCategories,
+  genres,
+  paidPriceLimits,
+  platforms,
+  subscriptions,
+} from '../features/onboarding/onboardingOptions';
+import { useRecommendations } from '../hooks/useRecommendations';
+import { searchIgdbGames } from '../api/igdb';
+import { removeLibraryEntry, saveLibraryEntry } from '../api/library';
+import { useLibrary } from '../hooks/useLibrary';
+import { useOnboardingStore } from '../store/onboardingStore';
+import type { OnboardingPreferences } from '../types/preferences';
+
+interface DeckHistoryEntry {
+  gameId: string;
+  action: SwipeAction;
+  wasLikedAlready: boolean;
+  wasSkippedAlready: boolean;
+  wasSuperlikedAlready: boolean;
+}
+
+function DeckPage() {
+  const recommendations = useRecommendations();
+  const allGames = recommendations.games;
+  const selectedPlatforms = useOnboardingStore((state) => state.platforms);
+  const selectedGenres = useOnboardingStore((state) => state.genres);
+  const selectedBudgetCategories = useOnboardingStore((state) => state.budgetCategories);
+  const selectedSubscriptions = useOnboardingStore((state) => state.subscriptions);
+  const paidPriceLimit = useOnboardingStore((state) => state.paidPriceLimit);
+  const library = useLibrary();
+  const likedGames = library.games;
+  const superlikedIds = library.superlikedIds;
+  const addLibraryGame = library.addGame;
+  const refreshLibrary = library.refresh;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<typeof allGames>([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [librarySyncError, setLibrarySyncError] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [skippedGames, setSkippedGames] = useState<(typeof allGames)[number][]>([]);
+  const [history, setHistory] = useState<DeckHistoryEntry[]>([]);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  const preferences = useMemo<OnboardingPreferences>(
+    () => ({
+      platforms: selectedPlatforms,
+      genres: selectedGenres,
+      budgetCategories: selectedBudgetCategories,
+      subscriptions: selectedSubscriptions,
+      paidPriceLimit,
+    }),
+    [
+      selectedPlatforms,
+      selectedGenres,
+      selectedBudgetCategories,
+      selectedSubscriptions,
+      paidPriceLimit,
+    ],
+  );
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query) return undefined;
+
+    let active = true;
+    const timeout = window.setTimeout(() => {
+      void searchIgdbGames(query)
+        .then((games) => {
+          if (active) setSearchResults(games);
+        })
+        .catch((error: unknown) => {
+          if (active) {
+            setSearchError(
+              error instanceof Error
+                ? error.message
+                : 'РќРµ РІРґР°Р»РѕСЃСЏ РІРёРєРѕРЅР°С‚Рё РїРѕС€СѓРє РІ IGDB.',
+            );
+            setSearchResults([]);
+          }
+        })
+        .finally(() => {
+          if (active) setIsSearchLoading(false);
+        });
+    }, 300);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
+  }, [searchQuery]);
+
+  const visibleGames = useMemo(
+    () => (searchQuery.trim() ? searchResults : allGames),
+    [allGames, searchQuery, searchResults],
+  );
+
+  const handleAction = useCallback(
+    (action: SwipeAction) => {
+      const game = visibleGames[currentIndex];
+      if (!game) return;
+      const wasLikedAlready = likedGames.some((item) => item.id === game.id);
+      const wasSkippedAlready = skippedGames.some((item) => item.id === game.id);
+      const wasSuperlikedAlready = superlikedIds.includes(game.id);
+
+      if (action === 'skip') {
+        setSkippedGames((previous) =>
+          previous.some((item) => item.id === game.id) ? previous : [...previous, game],
+        );
+      } else {
+        setLibrarySyncError(null);
+        addLibraryGame(game, action === 'superlike');
+        void saveLibraryEntry(game.igdbId, 'want_to_play', action === 'superlike').catch(
+          async (error: unknown) => {
+            await refreshLibrary();
+            setLibrarySyncError(
+              error instanceof Error ? error.message : 'Не вдалося зберегти гру в Supabase.',
+            );
+          },
+        );
+      }
+
+      setHistory((previous) => [
+        ...previous,
+        { gameId: game.id, action, wasLikedAlready, wasSkippedAlready, wasSuperlikedAlready },
+      ]);
+      setCurrentIndex((previous) => previous + 1);
+    },
+    [
+      currentIndex,
+      addLibraryGame,
+      refreshLibrary,
+      likedGames,
+      skippedGames,
+      superlikedIds,
+      visibleGames,
+    ],
+  );
+
+  const handleUndo = useCallback(() => {
+    const lastAction = history.at(-1);
+    const game =
+      lastAction && [...allGames, ...searchResults].find((item) => item.id === lastAction.gameId);
+    if (!lastAction || !game) return;
+
+    setHistory((previous) => previous.slice(0, -1));
+    setCurrentIndex((previous) => Math.max(0, previous - 1));
+
+    if (lastAction.action === 'skip') {
+      if (!lastAction.wasSkippedAlready) {
+        setSkippedGames((previous) => previous.filter((item) => item.id !== game.id));
+      }
+    } else {
+      const update = lastAction.wasLikedAlready
+        ? saveLibraryEntry(game.igdbId, 'want_to_play', lastAction.wasSuperlikedAlready)
+        : removeLibraryEntry(game.igdbId);
+      void update.then(library.refresh).catch((error: unknown) => {
+        setLibrarySyncError(
+          error instanceof Error
+            ? error.message
+            : 'РќРµ РІРґР°Р»РѕСЃСЏ РѕРЅРѕРІРёС‚Рё Р±С–Р±Р»С–РѕС‚РµРєСѓ РІ Supabase.',
+        );
+      });
+    }
+  }, [allGames, history, library.refresh, searchResults]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setIsSearchLoading(Boolean(value.trim()));
+    setSearchError(null);
+    if (!value.trim()) setSearchResults([]);
+    setCurrentIndex(0);
+    setHistory([]);
+  };
+
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setHistory([]);
+  };
+
+  const closePanels = useCallback(() => {
+    setIsFiltersOpen(false);
+    setIsNotificationsOpen(false);
+  }, []);
+
+  const isPanelOpen = isFiltersOpen || isNotificationsOpen;
+
+  useEffect(() => {
+    if (!isPanelOpen) return undefined;
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') closePanels();
+    }
+
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [closePanels, isPanelOpen]);
+
+  return (
+    <Layout
+      activePage="deck"
+      breadcrumb="РљРѕР»РѕРґР°"
+      searchValue={searchQuery}
+      onSearchChange={handleSearchChange}
+      searchLabel="РЁСѓРєР°С‚Рё РіСЂСѓ РІ РєР°С‚Р°Р»РѕР·С– IGDB"
+      notificationOpen={isNotificationsOpen}
+      onNotificationOpenChange={setIsNotificationsOpen}
+      mobileActions={
+        <Link
+          className="deck-mobile-wishlist-link"
+          to="/wishlist"
+          aria-label={`РҐРѕС‡Сѓ РіСЂР°С‚Рё: ${library.count}`}
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M20.8 8.7c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"
+              stroke="currentColor"
+              strokeWidth="1.7"
+            />
+          </svg>
+          <span>{library.count}</span>
+        </Link>
+      }
+    >
+      <main className="deck-content">
+        <div className="deck-heading-row">
+          <div>
+            <p className="deck-heading-eyebrow">Р”Р›РЇ РўР•Р‘Р•</p>
+            <h1>Р”Р»СЏ С‚РµР±Рµ</h1>
+            <p className="deck-heading-description">
+              Р—РЅР°Р№РґРё СЃРІРѕСЋ РЅР°СЃС‚СѓРїРЅСѓ РіСЂСѓ. РћРґРёРЅ РІРёР±С–СЂ вЂ” Р±Р»РёР¶С‡Рµ
+              РґРѕ РїСЂРёРіРѕРґРё.
+            </p>
+          </div>
+          <Link
+            className="deck-wishlist-button"
+            to="/wishlist"
+            aria-label={`Р’С–РґРєСЂРёС‚Рё СЃРїРёСЃРѕРє В«РҐРѕС‡Сѓ Р·С–РіСЂР°С‚РёВ», ${library.loading ? 'Р·Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ' : library.count} С–РіРѕСЂ`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M20.8 8.7c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11a4.7 4.7 0 0 1 8.8-2.2 4.7 4.7 0 0 1 8.8 2.2Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              />
+            </svg>
+            РҐРѕС‡Сѓ Р·С–РіСЂР°С‚Рё <b>{library.loading ? 'вЂ¦' : library.count}</b>
+          </Link>
+        </div>
+
+        <DeckFilters preferences={preferences} onOpen={() => setIsFiltersOpen(true)} />
+
+        {!searchQuery.trim() && recommendations.loading ? (
+          <p className="deck-session-status" role="status">
+            Р—Р°РІР°РЅС‚Р°Р¶СѓС”РјРѕ РєР°С‚Р°Р»РѕРі С–РіРѕСЂ Р· IGDBвЂ¦
+          </p>
+        ) : !searchQuery.trim() && recommendations.error ? (
+          <div className="deck-empty-state" role="alert">
+            <h2>РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё РєР°С‚Р°Р»РѕРі IGDB</h2>
+            <p>{recommendations.error}</p>
+            <button
+              className="deck-button deck-button--primary"
+              type="button"
+              onClick={recommendations.refresh}
+            >
+              РЎРїСЂРѕР±СѓРІР°С‚Рё С‰Рµ СЂР°Р·
+            </button>
+          </div>
+        ) : searchQuery.trim() && isSearchLoading ? (
+          <p className="deck-session-status" role="status">
+            РЁСѓРєР°С”РјРѕ С–РіСЂРё РІ IGDBвЂ¦
+          </p>
+        ) : searchError ? (
+          <div className="deck-empty-state" role="alert">
+            <h2>РџРѕРјРёР»РєР° РїРѕС€СѓРєСѓ IGDB</h2>
+            <p>{searchError}</p>
+            <button
+              className="deck-button deck-button--primary"
+              type="button"
+              onClick={() => handleSearchChange('')}
+            >
+              РћС‡РёСЃС‚РёС‚Рё РїРѕС€СѓРє
+            </button>
+          </div>
+        ) : (
+          <SwipeDeck
+            games={visibleGames}
+            currentIndex={currentIndex}
+            canUndo={history.length > 0}
+            isPaused={isPanelOpen}
+            onAction={handleAction}
+            onUndo={handleUndo}
+            onRestart={handleRestart}
+            onClearSearch={() => handleSearchChange('')}
+          />
+        )}
+
+        {librarySyncError ? (
+          <p className="deck-session-status" role="alert">
+            РќРµ РІРґР°Р»РѕСЃСЏ СЃРёРЅС…СЂРѕРЅС–Р·СѓРІР°С‚Рё Р±С–Р±Р»С–РѕС‚РµРєСѓ:{' '}
+            {librarySyncError}
+          </p>
+        ) : null}
+        <div className="deck-session-status" aria-live="polite">
+          <span>{history.length} РїРµСЂРµРіР»СЏРЅСѓС‚Рѕ</span>
+          <span>
+            {library.loading
+              ? 'Р—Р°РІР°РЅС‚Р°Р¶СѓС”РјРѕ Р±С–Р±Р»С–РѕС‚РµРєСѓвЂ¦'
+              : `${library.count} С…РѕС‡РµС€ Р·С–РіСЂР°С‚Рё`}
+          </span>
+          <span>{skippedGames.length} РїСЂРѕРїСѓС‰РµРЅРѕ</span>
+          {superlikedIds.length ? <span>{superlikedIds.length} СЃСѓРїРµСЂР»Р°Р№Рє</span> : null}
+          <span>Р”Р¶РµСЂРµР»Рѕ С–РіРѕСЂ: IGDB</span>
+        </div>
+      </main>
+
+      {isFiltersOpen ? (
+        <div
+          className="deck-overlay"
+          role="presentation"
+          onMouseDown={(event) => event.target === event.currentTarget && setIsFiltersOpen(false)}
+        >
+          <section
+            className="deck-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="deck-filters-title"
+          >
+            <button
+              className="deck-dialog__close"
+              type="button"
+              aria-label="Р—Р°РєСЂРёС‚Рё С„С–Р»СЊС‚СЂРё"
+              onClick={() => setIsFiltersOpen(false)}
+            >
+              Г—
+            </button>
+            <p className="deck-dialog__eyebrow">РўР’Р†Р™ Р’РР‘Р†Р </p>
+            <h2 id="deck-filters-title">РЈРїРѕРґРѕР±Р°РЅРЅСЏ РєРѕР»РѕРґРё</h2>
+            <p>
+              РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ Р· РѕРЅР±РѕСЂРґРёРЅРіСѓ, Р·Р±РµСЂРµР¶РµРЅС– Р»РѕРєР°Р»СЊРЅРѕ
+              Сѓ Zustand.
+            </p>
+            <FilterPreference
+              label="РџР»Р°С‚С„РѕСЂРјРё"
+              value={formatOptionLabels(selectedPlatforms, platforms)}
+            />
+            <FilterPreference
+              label="Р–Р°РЅСЂРё"
+              value={formatOptionLabels(selectedGenres, genres)}
+            />
+            <FilterPreference
+              label="Р‘СЋРґР¶РµС‚"
+              value={formatOptionLabels(selectedBudgetCategories, budgetCategories)}
+            />
+            <FilterPreference
+              label="РџС–РґРїРёСЃРєРё"
+              value={formatOptionLabels(selectedSubscriptions, subscriptions)}
+            />
+            <FilterPreference
+              label="Р›С–РјС–С‚ РїР»Р°С‚РЅРѕС— РіСЂРё"
+              value={
+                paidPriceLimit === null
+                  ? 'РќРµ РІРёР±СЂР°РЅРѕ'
+                  : (paidPriceLimits.find((limit) => limit.id === paidPriceLimit)?.label ??
+                    'РќРµ РІРёР±СЂР°РЅРѕ')
+              }
+            />
+            <button
+              className="deck-button deck-button--primary deck-dialog__done"
+              type="button"
+              onClick={() => setIsFiltersOpen(false)}
+            >
+              Р“РѕС‚РѕРІРѕ
+            </button>
+          </section>
+        </div>
+      ) : null}
+    </Layout>
+  );
+}
+
+function FilterPreference({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="deck-preference-row">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function formatOptionLabels<Value extends string>(
+  selected: Value[],
+  options: { id: Value; name: string }[],
+) {
+  if (!selected.length) return 'РќРµ РІРёР±СЂР°РЅРѕ';
+  return selected.map((id) => options.find((option) => option.id === id)?.name ?? id).join(', ');
+}
+
+export default DeckPage;

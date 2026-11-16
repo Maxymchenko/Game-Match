@@ -2203,14 +2203,19 @@ button.deck-nav__item {
 .deck-fact__score-value,
 .deck-fact__score-empty {
   display: grid;
+  box-sizing: border-box;
   width: 42px;
   height: 42px;
   flex: 0 0 42px;
+  overflow: hidden;
   border-radius: 9px;
   background: #05b982;
   color: #fff;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 760;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
   place-items: center;
 }
 
@@ -3960,6 +3965,49 @@ button.deck-nav__item {
   object-fit: cover;
   object-position: center;
   background: #10121a;
+}
+
+.game-search-card__cover--empty {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 75% 20%, rgb(233 83 218 / 32%), transparent 38%),
+    linear-gradient(145deg, #25213e, #10121a 74%);
+  color: #c2a4ff;
+  font-size: clamp(40px, 5vw, 72px);
+  font-weight: 700;
+}
+
+.search-loading {
+  margin: 10px 0;
+  color: #adb8cc;
+  font-size: 13px;
+}
+
+.search-load-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid rgb(233 83 218 / 35%);
+  border-radius: 12px;
+  background: rgb(233 83 218 / 8%);
+  color: #e7d9ff;
+  font-size: 13px;
+}
+
+.search-load-error p {
+  margin: 0;
+}
+
+.search-load-error button {
+  border: 0;
+  background: transparent;
+  color: #c2a4ff;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .game-search-card__content {
