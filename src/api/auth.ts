@@ -19,6 +19,16 @@ export async function signIn(email: string, password: string) {
   return data;
 }
 
+export async function sendPasswordReset(email: string, redirectTo: string): Promise<void> {
+  const { error } = await requireSupabase().auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw error;
+}
+
+export async function updatePassword(password: string): Promise<void> {
+  const { error } = await requireSupabase().auth.updateUser({ password });
+  if (error) throw error;
+}
+
 export async function signOut(): Promise<void> {
   const { error } = await requireSupabase().auth.signOut();
   if (error) throw error;

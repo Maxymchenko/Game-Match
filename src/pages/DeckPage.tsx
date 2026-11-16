@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import DeckFilters from '../features/deck/DeckFilters';
@@ -12,12 +12,13 @@ import {
   subscriptions,
 } from '../features/onboarding/onboardingOptions';
 import { useRecommendations } from '../hooks/useRecommendations';
-import { getLibraryEntries, saveLibraryEntry } from '../api/library';
+import { getLibraryEntries, removeLibraryEntry, saveLibraryEntry } from '../api/library';
 import { searchIgdbGames } from '../api/igdb';
 import { useOnboardingStore } from '../store/onboardingStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import { useAuth } from '../hooks/useAuth';
 import type { OnboardingPreferences } from '../types/preferences';
+import type { LibraryEntry, LibraryStatus } from '../types/library';
 
 interface DeckHistoryEntry {
   gameId: string;
@@ -25,9 +26,24 @@ interface DeckHistoryEntry {
   wasLikedAlready: boolean;
   wasSkippedAlready: boolean;
   wasSuperlikedAlready: boolean;
+  previousLibraryStatus: LibraryStatus | null;
+  previousWasSuperliked: boolean;
 }
 
-function matchesSelectedPlatform(gamePlatforms: string[], selected: OnboardingPreferences['platforms']) {
+interface PersistedLibraryState {
+  status: LibraryStatus;
+  isSuperlike: boolean;
+}
+
+interface DeckLibrarySnapshot {
+  userId: string;
+  entries: LibraryEntry[];
+}
+
+function matchesSelectedPlatform(
+  gamePlatforms: string[],
+  selected: OnboardingPreferences['platforms'],
+) {
   if (!selected.length) return true;
   const names = gamePlatforms.map((name) => name.toLowerCase());
   return selected.some((platform) => {
@@ -78,6 +94,7 @@ function DeckPage() {
   const likedGames = useWishlistStore((state) => state.games);
   const superlikedIds = useWishlistStore((state) => state.superlikedIds);
   const addGame = useWishlistStore((state) => state.addGame);
+  const removeGame = useWishlistStore((state) => state.removeGame);
   const restoreGameState = useWishlistStore((state) => state.restoreGameState);
   const replaceGames = useWishlistStore((state) => state.replaceGames);
   const clearWishlist = useWishlistStore((state) => state.clear);
@@ -91,6 +108,12 @@ function DeckPage() {
   const [history, setHistory] = useState<DeckHistoryEntry[]>([]);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [librarySnapshot, setLibrarySnapshot] = useState<DeckLibrarySnapshot | null>(null);
+  const libraryStateRef = useRef(new Map<number, PersistedLibraryState>());
+  const userId = session?.user.id;
+  const libraryEntries =
+    librarySnapshot && librarySnapshot.userId === userId ? librarySnapshot.entries : null;
+  const isLibraryLoading = Boolean(userId && libraryEntries === null);
 
   const preferences = useMemo<OnboardingPreferences>(
     () => ({
@@ -139,61 +162,126 @@ function DeckPage() {
   }, [searchQuery]);
 
   useEffect(() => {
-    clearWishlist();
-    if (!session?.user.id) return;
     let active = true;
-    void getLibraryEntries('want_to_play')
+    clearWishlist();
+    libraryStateRef.current.clear();
+    if (!userId) return undefined;
+
+    void getLibraryEntries()
       .then((entries) => {
         if (!active) return;
-        const gamesByIgdbId = new Map(allGames.map((game) => [game.igdbId, game]));
-        const savedGames = entries
-          .map((entry) => gamesByIgdbId.get(entry.igdb_game_id))
-          .filter((game): game is (typeof allGames)[number] => Boolean(game));
-        const savedIds = new Set(entries.filter((entry) => entry.is_superlike).map((entry) => String(entry.igdb_game_id)));
-        replaceGames(savedGames, savedGames.filter((game) => savedIds.has(String(game.igdbId))).map((game) => game.id));
+        libraryStateRef.current = new Map(
+          entries.map((entry) => [
+            entry.igdb_game_id,
+            { status: entry.status, isSuperlike: entry.is_superlike },
+          ]),
+        );
+        setLibrarySnapshot({ userId, entries });
+        setLibraryError('');
       })
       .catch((error: unknown) => {
-        if (active) setLibraryError(error instanceof Error ? error.message : 'Не вдалося завантажити список бажань.');
+        if (!active) return;
+        libraryStateRef.current.clear();
+        setLibrarySnapshot({ userId, entries: [] });
+        setLibraryError(
+          error instanceof Error ? error.message : 'Не вдалося завантажити твою бібліотеку.',
+        );
       });
-    return () => { active = false; };
-  }, [allGames, clearWishlist, replaceGames, session?.user.id]);
+
+    return () => {
+      active = false;
+    };
+  }, [clearWishlist, userId]);
+
+  useEffect(() => {
+    if (!libraryEntries) return;
+
+    const gamesByIgdbId = new Map(allGames.map((game) => [game.igdbId, game]));
+    const wantedEntries = libraryEntries.filter((entry) => entry.status === 'want_to_play');
+    const savedGames = wantedEntries
+      .map((entry) => gamesByIgdbId.get(entry.igdb_game_id))
+      .filter((game): game is (typeof allGames)[number] => Boolean(game));
+    const superlikedIds = new Set(
+      wantedEntries.filter((entry) => entry.is_superlike).map((entry) => entry.igdb_game_id),
+    );
+
+    replaceGames(
+      savedGames,
+      savedGames.filter((game) => superlikedIds.has(game.igdbId)).map((game) => game.id),
+    );
+  }, [allGames, libraryEntries, replaceGames]);
 
   const visibleGames = useMemo(() => {
     const sourceGames = searchQuery.trim() ? searchResults : allGames;
+    const libraryIds = new Set((libraryEntries ?? []).map((entry) => entry.igdb_game_id));
     return sourceGames.filter(
       (game) =>
+        (searchQuery.trim() || !libraryIds.has(game.igdbId)) &&
         matchesSelectedPlatform(game.platforms, selectedPlatforms) &&
         matchesSelectedGenre(game, selectedGenres),
     );
-  }, [allGames, searchQuery, searchResults, selectedPlatforms, selectedGenres]);
+  }, [allGames, libraryEntries, searchQuery, searchResults, selectedPlatforms, selectedGenres]);
 
   const handleAction = useCallback(
     (action: SwipeAction) => {
       const game = visibleGames[currentIndex];
       if (!game) return;
-      const wasLikedAlready = likedGames.some((item) => item.id === game.id);
-      const wasSkippedAlready = skippedGames.some((item) => item.id === game.id);
-      const wasSuperlikedAlready = superlikedIds.includes(game.id);
+      const previousLibraryState = libraryStateRef.current.get(game.igdbId) ?? null;
+      const wasLikedAlready =
+        likedGames.some((item) => item.id === game.id) ||
+        previousLibraryState?.status === 'want_to_play';
+      const wasSkippedAlready =
+        skippedGames.some((item) => item.id === game.id) ||
+        previousLibraryState?.status === 'skipped';
+      const wasSuperlikedAlready =
+        superlikedIds.includes(game.id) ||
+        (previousLibraryState?.status === 'want_to_play' && previousLibraryState.isSuperlike);
+      const previousLibraryStatus =
+        previousLibraryState?.status ?? (wasLikedAlready ? 'want_to_play' : null);
+      const previousWasSuperliked = previousLibraryState?.isSuperlike ?? wasSuperlikedAlready;
+      const nextLibraryStatus = action === 'skip' ? 'skipped' : 'want_to_play';
+
+      libraryStateRef.current.set(game.igdbId, {
+        status: nextLibraryStatus,
+        isSuperlike: action === 'superlike',
+      });
 
       if (action === 'skip') {
         setSkippedGames((previous) =>
           previous.some((item) => item.id === game.id) ? previous : [...previous, game],
         );
+        if (wasLikedAlready) removeGame(game.id);
       } else {
+        setSkippedGames((previous) => previous.filter((item) => item.id !== game.id));
+        if (wasLikedAlready) removeGame(game.id);
         addGame(game, action === 'superlike');
-        setLibraryError('');
-        void saveLibraryEntry(game.igdbId, 'want_to_play', action === 'superlike').catch((error: unknown) => {
-          setLibraryError(error instanceof Error ? `Не вдалося зберегти гру: ${error.message}` : 'Не вдалося зберегти гру в Supabase.');
-        });
       }
+      setLibraryError('');
+      void saveLibraryEntry(game.igdbId, nextLibraryStatus, action === 'superlike').catch(
+        (error: unknown) => {
+          setLibraryError(
+            error instanceof Error
+              ? `Не вдалося зберегти гру: ${error.message}`
+              : 'Не вдалося зберегти гру в Supabase.',
+          );
+        },
+      );
 
       setHistory((previous) => [
         ...previous,
-        { gameId: game.id, action, wasLikedAlready, wasSkippedAlready, wasSuperlikedAlready },
+        {
+          gameId: game.id,
+          action,
+          wasLikedAlready,
+          wasSkippedAlready,
+          wasSuperlikedAlready,
+          previousLibraryStatus,
+          previousWasSuperliked,
+        },
       ]);
       setCurrentIndex((previous) => previous + 1);
     },
-    [addGame, currentIndex, likedGames, skippedGames, superlikedIds, visibleGames],
+    [addGame, currentIndex, likedGames, removeGame, skippedGames, superlikedIds, visibleGames],
   );
 
   const handleUndo = useCallback(() => {
@@ -205,12 +293,46 @@ function DeckPage() {
     setHistory((previous) => previous.slice(0, -1));
     setCurrentIndex((previous) => Math.max(0, previous - 1));
 
-    if (lastAction.action === 'skip') {
-      if (!lastAction.wasSkippedAlready) {
-        setSkippedGames((previous) => previous.filter((item) => item.id !== game.id));
-      }
+    if (lastAction.previousLibraryStatus === 'skipped') {
+      setSkippedGames((previous) =>
+        previous.some((item) => item.id === game.id) ? previous : [...previous, game],
+      );
     } else {
-      restoreGameState(game, lastAction.wasLikedAlready, lastAction.wasSuperlikedAlready);
+      setSkippedGames((previous) => previous.filter((item) => item.id !== game.id));
+    }
+
+    const wasPreviouslyLiked = lastAction.previousLibraryStatus === 'want_to_play';
+    restoreGameState(
+      game,
+      wasPreviouslyLiked,
+      wasPreviouslyLiked && lastAction.previousWasSuperliked,
+    );
+
+    if (lastAction.previousLibraryStatus) {
+      libraryStateRef.current.set(game.igdbId, {
+        status: lastAction.previousLibraryStatus,
+        isSuperlike: lastAction.previousWasSuperliked,
+      });
+      void saveLibraryEntry(
+        game.igdbId,
+        lastAction.previousLibraryStatus,
+        lastAction.previousWasSuperliked,
+      ).catch((error: unknown) => {
+        setLibraryError(
+          error instanceof Error
+            ? `Не вдалося скасувати дію: ${error.message}`
+            : 'Не вдалося скасувати дію в Supabase.',
+        );
+      });
+    } else {
+      libraryStateRef.current.delete(game.igdbId);
+      void removeLibraryEntry(game.igdbId).catch((error: unknown) => {
+        setLibraryError(
+          error instanceof Error
+            ? `Не вдалося скасувати дію: ${error.message}`
+            : 'Не вдалося скасувати дію в Supabase.',
+        );
+      });
     }
   }, [allGames, history, restoreGameState, searchResults]);
 
@@ -233,9 +355,11 @@ function DeckPage() {
     }
 
     // Завантажуємо наступні ігри, але пропускаємо ті, що не відповідають фільтрам.
-    const nextGames = await recommendations.refresh(true, (game) =>
-      matchesSelectedPlatform(game.platforms, selectedPlatforms) &&
-      matchesSelectedGenre(game, selectedGenres),
+    const nextGames = await recommendations.refresh(
+      true,
+      (game) =>
+        matchesSelectedPlatform(game.platforms, selectedPlatforms) &&
+        matchesSelectedGenre(game, selectedGenres),
     );
     if (!nextGames) return;
     setCurrentIndex(0);
@@ -314,7 +438,11 @@ function DeckPage() {
 
         <DeckFilters preferences={preferences} onOpen={() => setIsFiltersOpen(true)} />
 
-        {!searchQuery.trim() && recommendations.loading ? (
+        {isLibraryLoading ? (
+          <p className="deck-session-status" role="status">
+            Завантажуємо твою бібліотеку…
+          </p>
+        ) : !searchQuery.trim() && recommendations.loading ? (
           <p className="deck-session-status" role="status">
             Завантажуємо каталог ігор з IGDB…
           </p>
@@ -359,7 +487,11 @@ function DeckPage() {
           />
         )}
 
-        {libraryError ? <p className="auth-message auth-message--error" role="alert">{libraryError}</p> : null}
+        {libraryError ? (
+          <p className="auth-message auth-message--error" role="alert">
+            {libraryError}
+          </p>
+        ) : null}
         <div className="deck-session-status" aria-live="polite">
           <span>{history.length} переглянуто</span>
           <span>{likedGames.length} хочеш зіграти</span>

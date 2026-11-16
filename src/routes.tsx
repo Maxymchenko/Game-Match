@@ -3,6 +3,7 @@ import AuthGate from './components/AuthGate';
 import BudgetStep from './features/onboarding/BudgetStep';
 import GenreStep from './features/onboarding/GenreStep';
 import PlatformStep from './features/onboarding/PlatformStep';
+import AccountPage from './pages/AccountPage';
 import AuthPage from './pages/AuthPage';
 import DeckPage from './pages/DeckPage';
 import SearchPage from './pages/SearchPage';
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
       { path: '/onboarding/platforms', element: <PlatformStep /> },
       { path: '/onboarding/genres', element: <GenreStep /> },
       { path: '/onboarding/budget', element: <BudgetStep /> },
+      { path: '/account', element: <AccountPage /> },
       { path: '/deck', element: <DeckPage /> },
       { path: '/search', element: <SearchPage /> },
       { path: '/wishlist', element: <WishlistPage /> },

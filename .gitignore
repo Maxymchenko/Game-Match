@@ -34,3 +34,4 @@ dist-ssr
 # Local Supabase Edge Function secrets
 supabase/functions/.env
 !supabase/functions/.env.example
+supabase/.temp/
